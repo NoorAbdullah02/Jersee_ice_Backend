@@ -74,7 +74,7 @@ async function initializeDatabase() {
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
                 student_id VARCHAR(50) NOT NULL,
-                jersey_number INTEGER NOT NULL,
+                jersey_number INTEGER NOT NULL UNIQUE,
                 batch VARCHAR(50) NULL,
                 size VARCHAR(10) NOT NULL,
                 collar_type VARCHAR(20) NOT NULL,
@@ -96,7 +96,8 @@ async function initializeDatabase() {
         
         // Create indexes
         const indexes = [
-            'CREATE INDEX IF NOT EXISTS idx_jersey_batch ON orders(jersey_number, batch)',
+            'CREATE UNIQUE INDEX IF NOT EXISTS idx_jersey_unique ON orders(jersey_number)',
+            'CREATE INDEX IF NOT EXISTS idx_name ON orders(name)',
             'CREATE INDEX IF NOT EXISTS idx_email ON orders(email)',
             'CREATE INDEX IF NOT EXISTS idx_status ON orders(status)',
             'CREATE INDEX IF NOT EXISTS idx_created_at ON orders(created_at)'
@@ -114,19 +115,19 @@ async function initializeDatabase() {
     }
 }
 
-// Database query execution
+// Database query execution - FIXED VERSION
 async function executeQuery(query, params = []) {
     const client = await connectDatabase();
     try {
-        // Convert MySQL-style ? placeholders to PostgreSQL-style $1, $2, etc.
-        let pgQuery = query;
-        let paramIndex = 1;
-        pgQuery = pgQuery.replace(/\?/g, () => `$${paramIndex++}`);
+        console.log('Executing query:', query);
+        console.log('With params:', params);
         
-        const result = await client.query(pgQuery, params);
+        const result = await client.query(query, params);
         return result.rows;
     } catch (error) {
         console.error('PostgreSQL Query Error:', error.message);
+        console.error('Query:', query);
+        console.error('Params:', params);
         throw error;
     } finally {
         await client.end();
@@ -403,7 +404,32 @@ app.get('/api/health', async (req, res) => {
     res.json(healthCheck);
 });
 
-// Check jersey number availability
+// Check name existence - FIXED
+app.get('/api/orders/check-name', async (req, res) => {
+    try {
+        const { name } = req.query;
+        
+        if (!name) {
+            return res.status(400).json({ error: 'Name is required' });
+        }
+
+        const query = 'SELECT id FROM orders WHERE LOWER(name) = LOWER($1)';
+        const results = await executeQuery(query, [name.trim()]);
+        
+        res.json({ 
+            exists: results.length > 0,
+            conflictingOrders: results.length,
+            message: results.length > 0 ? 
+                `Name "${name}" already exists in the database` : 
+                `Name "${name}" is available`
+        });
+    } catch (error) {
+        console.error('Error checking name existence:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+
+// Check jersey number availability - FIXED
 app.get('/api/orders/check-jersey', async (req, res) => {
     try {
         const { number, batch } = req.query;
@@ -412,23 +438,16 @@ app.get('/api/orders/check-jersey', async (req, res) => {
             return res.status(400).json({ error: 'Jersey number is required' });
         }
 
-        let query, params;
-        
-        if (batch && batch.trim()) {
-            query = 'SELECT id FROM orders WHERE jersey_number = ? AND batch = ?';
-            params = [number, batch.trim()];
-        } else {
-            query = 'SELECT id FROM orders WHERE jersey_number = ?';
-            params = [number];
-        }
-        
-        const results = await executeQuery(query, params);
+        // Jersey numbers must be globally unique regardless of batch
+        const query = 'SELECT id, name, batch FROM orders WHERE jersey_number = $1';
+        const results = await executeQuery(query, [parseInt(number)]);
         
         res.json({ 
             available: results.length === 0,
             conflictingOrders: results.length,
+            conflictDetails: results.length > 0 ? results[0] : null,
             message: results.length > 0 ? 
-                `Jersey number ${number} is already taken${batch ? ` for batch ${batch}` : ''}` : 
+                `Jersey number ${number} is already taken` : 
                 `Jersey number ${number} is available`
         });
     } catch (error) {
@@ -437,7 +456,7 @@ app.get('/api/orders/check-jersey', async (req, res) => {
     }
 });
 
-// Submit new order
+// Submit new order - FIXED
 app.post('/api/orders', async (req, res) => {
     try {
         const {
@@ -473,22 +492,13 @@ app.post('/api/orders', async (req, res) => {
             });
         }
 
-        // Check if jersey number is already taken
-        let checkQuery, checkParams;
-        
-        if (batch && batch.trim()) {
-            checkQuery = 'SELECT id FROM orders WHERE jersey_number = ? AND batch = ?';
-            checkParams = [jerseyNumber, batch.trim()];
-        } else {
-            checkQuery = 'SELECT id FROM orders WHERE jersey_number = ? AND (batch IS NULL OR batch = \'\')';
-            checkParams = [jerseyNumber];
-        }
-        
-        const existing = await executeQuery(checkQuery, checkParams);
+        // Check if jersey number is already taken (globally unique)
+        const checkQuery = 'SELECT id, name FROM orders WHERE jersey_number = $1';
+        const existing = await executeQuery(checkQuery, [jerseyNumber]);
         
         if (existing.length > 0) {
             return res.status(409).json({ 
-                error: `Jersey number ${jerseyNumber} is already taken${batch && batch.trim() ? ` for batch ${batch.trim()}` : ''}` 
+                error: `Jersey number ${jerseyNumber} is already taken by ${existing[0].name}` 
             });
         }
 
@@ -497,13 +507,14 @@ app.post('/api/orders', async (req, res) => {
         const cleanTransactionId = transactionId && transactionId.trim() ? transactionId.trim() : null;
         const cleanNotes = notes && notes.trim() ? notes.trim() : null;
 
-        // Insert new order
+        // Insert new order - FIXED POSTGRESQL SYNTAX
         const insertQuery = `
             INSERT INTO orders (
                 name, student_id, jersey_number, batch, size, 
                 collar_type, sleeve_type, email, transaction_id, 
                 notes, final_price, order_date, department
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            RETURNING id
         `;
 
         const insertParams = [
@@ -549,8 +560,9 @@ app.post('/api/orders', async (req, res) => {
         console.error('Error creating order:', error);
         
         if (error.code === '23505') {
+            // Unique constraint violation
             res.status(409).json({ 
-                error: 'Jersey number already taken for this batch' 
+                error: 'Jersey number is already taken' 
             });
         } else {
             res.status(500).json({ 
@@ -561,7 +573,7 @@ app.post('/api/orders', async (req, res) => {
     }
 });
 
-// Get all orders
+// Get all orders - FIXED
 app.get('/api/orders', async (req, res) => {
     try {
         const query = 'SELECT * FROM orders ORDER BY created_at DESC';
@@ -577,10 +589,10 @@ app.get('/api/orders', async (req, res) => {
     }
 });
 
-// Get order by ID
+// Get order by ID - FIXED
 app.get('/api/orders/:id', async (req, res) => {
     try {
-        const query = 'SELECT * FROM orders WHERE id = ?';
+        const query = 'SELECT * FROM orders WHERE id = $1';
         const orders = await executeQuery(query, [req.params.id]);
         
         if (orders.length === 0) {
@@ -597,7 +609,7 @@ app.get('/api/orders/:id', async (req, res) => {
     }
 });
 
-// Update order status
+// Update order status - FIXED
 app.patch('/api/orders/:id/status', async (req, res) => {
     try {
         const { status } = req.body;
@@ -610,7 +622,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
             });
         }
 
-        const updateQuery = 'UPDATE orders SET status = ?, updated_at = ? WHERE id = ?';
+        const updateQuery = 'UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3';
         const updateParams = [status, formatDateForSQL(), req.params.id];
         
         await executeQuery(updateQuery, updateParams);
@@ -626,10 +638,10 @@ app.patch('/api/orders/:id/status', async (req, res) => {
     }
 });
 
-// Delete order
+// Delete order - FIXED
 app.delete('/api/orders/:id', async (req, res) => {
     try {
-        const deleteQuery = 'DELETE FROM orders WHERE id = ?';
+        const deleteQuery = 'DELETE FROM orders WHERE id = $1';
         await executeQuery(deleteQuery, [req.params.id]);
         
         res.json({ 
@@ -642,10 +654,10 @@ app.delete('/api/orders/:id', async (req, res) => {
     }
 });
 
-// Get orders by batch
+// Get orders by batch - FIXED
 app.get('/api/orders/batch/:batch', async (req, res) => {
     try {
-        const query = 'SELECT * FROM orders WHERE batch = ? ORDER BY created_at DESC';
+        const query = 'SELECT * FROM orders WHERE batch = $1 ORDER BY created_at DESC';
         const orders = await executeQuery(query, [req.params.batch]);
         
         res.json({
@@ -660,10 +672,10 @@ app.get('/api/orders/batch/:batch', async (req, res) => {
     }
 });
 
-// Get orders by status
+// Get orders by status - FIXED
 app.get('/api/orders/status/:status', async (req, res) => {
     try {
-        const query = 'SELECT * FROM orders WHERE status = ? ORDER BY created_at DESC';
+        const query = 'SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC';
         const orders = await executeQuery(query, [req.params.status]);
         
         res.json({
@@ -698,6 +710,7 @@ app.use((req, res) => {
         error: 'Route not found',
         availableRoutes: [
             'GET /api/health',
+            'GET /api/orders/check-name',
             'GET /api/orders/check-jersey',
             'POST /api/orders',
             'GET /api/orders',
@@ -737,6 +750,7 @@ async function startServer() {
             console.log('');
             console.log('Available API Endpoints:');
             console.log('  GET    /api/health - Server health check');
+            console.log('  GET    /api/orders/check-name - Check name existence');
             console.log('  GET    /api/orders/check-jersey - Check jersey availability');
             console.log('  POST   /api/orders - Submit new order');
             console.log('  GET    /api/orders - Get all orders');
