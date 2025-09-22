@@ -709,16 +709,16 @@ app.use((req, res) => {
     res.status(404).json({ 
         error: 'Route not found',
         availableRoutes: [
-            'GET /api/health',
-            'GET /api/orders/check-name',
-            'GET /api/orders/check-jersey',
-            'POST /api/orders',
-            'GET /api/orders',
-            'GET /api/orders/:id',
-            'GET /api/orders/batch/:batch',
-            'GET /api/orders/status/:status',
-            'PATCH /api/orders/:id/status',
-            'DELETE /api/orders/:id'
+            // 'GET /api/health',
+            // 'GET /api/orders/check-name',
+            // 'GET /api/orders/check-jersey',
+            // 'POST /api/orders',
+            // 'GET /api/orders',
+            // 'GET /api/orders/:id',
+            // 'GET /api/orders/batch/:batch',
+            // 'GET /api/orders/status/:status',
+            // 'PATCH /api/orders/:id/status',
+            // 'DELETE /api/orders/:id'
         ]
     });
 });
