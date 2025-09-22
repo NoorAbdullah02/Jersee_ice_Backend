@@ -72,19 +72,19 @@ async function initializeDatabase() {
         const createOrdersTable = `
             CREATE TABLE IF NOT EXISTS orders (
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
+                name VARCHAR(30) NOT NULL,
                 student_id VARCHAR(50) NOT NULL,
                 jersey_number INTEGER NOT NULL UNIQUE,
-                batch VARCHAR(50) NULL,
+                batch VARCHAR(15) NULL,
                 size VARCHAR(10) NOT NULL,
                 collar_type VARCHAR(20) NOT NULL,
                 sleeve_type VARCHAR(20) NOT NULL,
-                email VARCHAR(255) NOT NULL,
-                transaction_id VARCHAR(255) NULL,
+                email VARCHAR(40) NOT NULL,
+                transaction_id VARCHAR(100) NULL,
                 notes TEXT NULL,
                 final_price DECIMAL(10, 2) NOT NULL,
                 order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                department VARCHAR(50) DEFAULT 'ICE',
+                department VARCHAR(10) DEFAULT 'ICE',
                 status VARCHAR(20) DEFAULT 'pending',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -574,40 +574,46 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // Get all orders - FIXED
-app.get('/api/orders', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM orders ORDER BY created_at DESC';
-        const orders = await executeQuery(query);
-        res.json({
-            success: true,
-            count: orders.length,
-            orders: orders
-        });
-    } catch (error) {
-        console.error('Error fetching orders:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
+
+
+
+// app.get('/api/orders', async (req, res) => {
+//     try {
+//         const query = 'SELECT * FROM orders ORDER BY created_at DESC';
+//         const orders = await executeQuery(query);
+//         res.json({
+//             success: true,
+//             count: orders.length,
+//             orders: orders
+//         });
+//     } catch (error) {
+//         console.error('Error fetching orders:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
+
+
+
 
 // Get order by ID - FIXED
-app.get('/api/orders/:id', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM orders WHERE id = $1';
-        const orders = await executeQuery(query, [req.params.id]);
+// app.get('/api/orders/:id', async (req, res) => {
+//     try {
+//         const query = 'SELECT * FROM orders WHERE id = $1';
+//         const orders = await executeQuery(query, [req.params.id]);
         
-        if (orders.length === 0) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
+//         if (orders.length === 0) {
+//             return res.status(404).json({ error: 'Order not found' });
+//         }
         
-        res.json({
-            success: true,
-            order: orders[0]
-        });
-    } catch (error) {
-        console.error('Error fetching order:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
+//         res.json({
+//             success: true,
+//             order: orders[0]
+//         });
+//     } catch (error) {
+//         console.error('Error fetching order:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
 
 // Update order status - FIXED
 app.patch('/api/orders/:id/status', async (req, res) => {
@@ -806,6 +812,7 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Reason:', reason);
     process.exit(1);
 });
+
 
 // Start the server
 startServer();
