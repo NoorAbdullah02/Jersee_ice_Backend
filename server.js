@@ -112,7 +112,7 @@ const initDB = async () => {
  const defaultAdmins = [
       { username: 'ice', password: 'ice14' },
       { username: 'aldrik', password: 'chakma' },
-      { username: 'noor', password: 'bauet12' }
+      { username: 'noor', password: 'hosu' }
     ];
 
     for (const admin of defaultAdmins) {
