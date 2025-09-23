@@ -36,14 +36,14 @@ async function connectDatabase() {
     try {
         console.log('Attempting PostgreSQL connection...');
         console.log('Database URL:', process.env.DATABASE_URL ? 'Configured' : 'Missing');
-        
+
         if (!process.env.DATABASE_URL) {
             throw new Error('DATABASE_URL environment variable is required');
         }
 
         const client = new Client(pgConfig);
         await client.connect();
-        
+
         // Test the connection
         await client.query('SELECT NOW()');
         console.log('Connected to PostgreSQL database successfully');
@@ -64,10 +64,10 @@ async function connectDatabase() {
 // Initialize database tables
 async function initializeDatabase() {
     const client = await connectDatabase();
-    
+
     try {
         console.log('Initializing PostgreSQL database...');
-        
+
         // Create orders table
         const createOrdersTable = `
             CREATE TABLE IF NOT EXISTS orders (
@@ -90,10 +90,10 @@ async function initializeDatabase() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `;
-        
+
         await client.query(createOrdersTable);
         console.log('PostgreSQL orders table created/verified');
-        
+
         // Create indexes
         const indexes = [
             'CREATE UNIQUE INDEX IF NOT EXISTS idx_jersey_unique ON orders(jersey_number)',
@@ -102,14 +102,14 @@ async function initializeDatabase() {
             'CREATE INDEX IF NOT EXISTS idx_status ON orders(status)',
             'CREATE INDEX IF NOT EXISTS idx_created_at ON orders(created_at)'
         ];
-        
+
         for (const indexQuery of indexes) {
             await client.query(indexQuery);
         }
-        
+
         console.log('PostgreSQL indexes created/verified');
         console.log('Database initialization completed successfully');
-        
+
     } finally {
         await client.end();
     }
@@ -121,7 +121,7 @@ async function executeQuery(query, params = []) {
     try {
         console.log('Executing query:', query);
         console.log('With params:', params);
-        
+
         const result = await client.query(query, params);
         return result.rows;
     } catch (error) {
@@ -267,13 +267,13 @@ async function sendConfirmationEmail(orderData) {
             htmlContent: htmlContent,
             textContent: textContent
         });
-        
+
         if (result.success) {
             console.log('Confirmation email sent successfully to:', orderData.email);
         } else {
             console.warn('Failed to send confirmation email:', result.error);
         }
-        
+
         return result;
     } catch (error) {
         console.error('Error sending confirmation email:', error);
@@ -283,7 +283,7 @@ async function sendConfirmationEmail(orderData) {
 
 async function sendAdminNotification(orderData) {
     const adminEmail = process.env.ADMIN_EMAIL || 'sheikhnoorabdullah02@gmail.com';
-    
+
     const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: #dc3545; padding: 20px; text-align: center;">
@@ -357,13 +357,13 @@ async function sendAdminNotification(orderData) {
             htmlContent: htmlContent,
             textContent: textContent
         });
-        
+
         if (result.success) {
             console.log('Admin notification sent successfully');
         } else {
             console.warn('Failed to send admin notification:', result.error);
         }
-        
+
         return result;
     } catch (error) {
         console.error('Error sending admin notification:', error);
@@ -381,7 +381,7 @@ function formatDateForSQL(date = new Date()) {
 // Health check
 app.get('/api/health', async (req, res) => {
     const healthCheck = {
-        status: 'OK', 
+        status: 'OK',
         timestamp: new Date().toISOString(),
         database: 'PostgreSQL (Neon)',
         emailService: brevoConfig.apiKey ? 'Brevo configured' : 'Not configured',
@@ -408,19 +408,19 @@ app.get('/api/health', async (req, res) => {
 app.get('/api/orders/check-name', async (req, res) => {
     try {
         const { name } = req.query;
-        
+
         if (!name) {
             return res.status(400).json({ error: 'Name is required' });
         }
 
         const query = 'SELECT id FROM orders WHERE LOWER(name) = LOWER($1)';
         const results = await executeQuery(query, [name.trim()]);
-        
-        res.json({ 
+
+        res.json({
             exists: results.length > 0,
             conflictingOrders: results.length,
-            message: results.length > 0 ? 
-                `Name "${name}" already exists in the database` : 
+            message: results.length > 0 ?
+                `Name "${name}" already exists in the database` :
                 `Name "${name}" is available`
         });
     } catch (error) {
@@ -433,7 +433,7 @@ app.get('/api/orders/check-name', async (req, res) => {
 app.get('/api/orders/check-jersey', async (req, res) => {
     try {
         const { number, batch } = req.query;
-        
+
         if (!number) {
             return res.status(400).json({ error: 'Jersey number is required' });
         }
@@ -441,13 +441,13 @@ app.get('/api/orders/check-jersey', async (req, res) => {
         // Jersey numbers must be globally unique regardless of batch
         const query = 'SELECT id, name, batch FROM orders WHERE jersey_number = $1';
         const results = await executeQuery(query, [parseInt(number)]);
-        
-        res.json({ 
+
+        res.json({
             available: results.length === 0,
             conflictingOrders: results.length,
             conflictDetails: results.length > 0 ? results[0] : null,
-            message: results.length > 0 ? 
-                `Jersey number ${number} is already taken` : 
+            message: results.length > 0 ?
+                `Jersey number ${number} is already taken` :
                 `Jersey number ${number} is available`
         });
     } catch (error) {
@@ -468,37 +468,37 @@ app.post('/api/orders', async (req, res) => {
         // Validate required fields
         const requiredFields = ['name', 'studentId', 'jerseyNumber', 'size', 'collarType', 'sleeveType', 'email', 'finalPrice'];
         const missingFields = requiredFields.filter(field => !req.body[field] || req.body[field].toString().trim() === '');
-        
+
         if (missingFields.length > 0) {
-            return res.status(400).json({ 
-                error: 'Missing required fields', 
-                missingFields 
+            return res.status(400).json({
+                error: 'Missing required fields',
+                missingFields
             });
         }
 
         // Validate jersey number
         const jerseyNum = parseInt(jerseyNumber);
         if (isNaN(jerseyNum) || jerseyNum < 1 || jerseyNum > 99) {
-            return res.status(400).json({ 
-                error: 'Jersey number must be between 1 and 99' 
+            return res.status(400).json({
+                error: 'Jersey number must be between 1 and 99'
             });
         }
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email.trim())) {
-            return res.status(400).json({ 
-                error: 'Please provide a valid email address' 
+            return res.status(400).json({
+                error: 'Please provide a valid email address'
             });
         }
 
         // Check if jersey number is already taken (globally unique)
         const checkQuery = 'SELECT id, name FROM orders WHERE jersey_number = $1';
         const existing = await executeQuery(checkQuery, [jerseyNumber]);
-        
+
         if (existing.length > 0) {
-            return res.status(409).json({ 
-                error: `Jersey number ${jerseyNumber} is already taken by ${existing[0].name}` 
+            return res.status(409).json({
+                error: `Jersey number ${jerseyNumber} is already taken by ${existing[0].name}`
             });
         }
 
@@ -520,13 +520,13 @@ app.post('/api/orders', async (req, res) => {
         const insertParams = [
             name.trim(), studentId.trim(), jerseyNumber, cleanBatch, size,
             collarType, sleeveType, email.trim(), cleanTransactionId,
-            cleanNotes, finalPrice, 
-            formatDateForSQL(orderDate ? new Date(orderDate) : new Date()), 
+            cleanNotes, finalPrice,
+            formatDateForSQL(orderDate ? new Date(orderDate) : new Date()),
             department || 'ICE'
         ];
 
         const result = await executeQuery(insertQuery, insertParams);
-        
+
         // Generate order ID
         const orderId = result[0]?.id || Date.now().toString().slice(-6);
         const orderIdFormatted = `ICE-${orderId.toString().padStart(6, '0')}`;
@@ -558,16 +558,16 @@ app.post('/api/orders', async (req, res) => {
 
     } catch (error) {
         console.error('Error creating order:', error);
-        
+
         if (error.code === '23505') {
             // Unique constraint violation
-            res.status(409).json({ 
-                error: 'Jersey number is already taken' 
+            res.status(409).json({
+                error: 'Jersey number is already taken'
             });
         } else {
-            res.status(500).json({ 
+            res.status(500).json({
                 error: 'Internal server error',
-                message: error.message 
+                message: error.message
             });
         }
     }
@@ -600,11 +600,11 @@ app.post('/api/orders', async (req, res) => {
 //     try {
 //         const query = 'SELECT * FROM orders WHERE id = $1';
 //         const orders = await executeQuery(query, [req.params.id]);
-        
+
 //         if (orders.length === 0) {
 //             return res.status(404).json({ error: 'Order not found' });
 //         }
-        
+
 //         res.json({
 //             success: true,
 //             order: orders[0]
@@ -625,7 +625,7 @@ app.post('/api/orders', async (req, res) => {
 //     try {
 //         const { status } = req.body;
 //         const validStatuses = ['pending', 'confirmed', 'in_production', 'ready', 'delivered', 'cancelled'];
-        
+
 //         if (!validStatuses.includes(status)) {
 //             return res.status(400).json({ 
 //                 error: 'Invalid status',
@@ -635,9 +635,9 @@ app.post('/api/orders', async (req, res) => {
 
 //         const updateQuery = 'UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3';
 //         const updateParams = [status, formatDateForSQL(), req.params.id];
-        
+
 //         await executeQuery(updateQuery, updateParams);
-        
+
 //         res.json({ 
 //             success: true, 
 //             message: 'Order status updated successfully',
@@ -654,7 +654,7 @@ app.post('/api/orders', async (req, res) => {
 //     try {
 //         const deleteQuery = 'DELETE FROM orders WHERE id = $1';
 //         await executeQuery(deleteQuery, [req.params.id]);
-        
+
 //         res.json({ 
 //             success: true, 
 //             message: 'Order deleted successfully'
@@ -670,7 +670,7 @@ app.post('/api/orders', async (req, res) => {
 //     try {
 //         const query = 'SELECT * FROM orders WHERE batch = $1 ORDER BY created_at DESC';
 //         const orders = await executeQuery(query, [req.params.batch]);
-        
+
 //         res.json({
 //             success: true,
 //             batch: req.params.batch,
@@ -688,7 +688,7 @@ app.post('/api/orders', async (req, res) => {
 //     try {
 //         const query = 'SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC';
 //         const orders = await executeQuery(query, [req.params.status]);
-        
+
 //         res.json({
 //             success: true,
 //             status: req.params.status,
@@ -709,7 +709,7 @@ app.get('/', (req, res) => {
 // Error handling middleware
 app.use((error, req, res, next) => {
     console.error('Unhandled error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
         error: 'Internal server error',
         message: error.message
     });
@@ -717,7 +717,7 @@ app.use((error, req, res, next) => {
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).json({ 
+    res.status(404).json({
         error: 'Route not found',
         availableRoutes: [
             // 'GET /api/health',
@@ -738,17 +738,17 @@ app.use((req, res) => {
 async function startServer() {
     try {
         console.log('Starting Jersey Order System...');
-        
+
         // Validate DATABASE_URL
         if (!process.env.DATABASE_URL) {
             console.error('DATABASE_URL environment variable is required');
             console.error('Please set DATABASE_URL in your .env file');
             process.exit(1);
         }
-        
+
         console.log('Initializing database...');
         await initializeDatabase();
-        
+
         app.listen(PORT, () => {
             console.log('');
             console.log('Jersey Order System Started Successfully!');
@@ -771,7 +771,7 @@ async function startServer() {
             console.log('  PATCH  /api/orders/:id/status - Update order status');
             console.log('  DELETE /api/orders/:id - Delete order');
             console.log('');
-            
+
             if (!brevoConfig.apiKey) {
                 console.log('WARNING: Brevo API key not configured. Email notifications will not work.');
                 console.log('Set BREVO_API_KEY environment variable to enable email features.');
@@ -786,7 +786,7 @@ async function startServer() {
         console.error('- Ensure Neon database is accessible');
         console.error('- Check SSL configuration');
         console.error('');
-        
+
         process.exit(1);
     }
 }
@@ -797,7 +797,7 @@ function gracefulShutdown(signal) {
     console.log('Closing database connections...');
     console.log('Server stopped');
     console.log('Jersey Order System shutdown complete.');
-    
+
     process.exit(0);
 }
 
@@ -817,6 +817,70 @@ process.on('unhandledRejection', (reason, promise) => {
     console.error('Reason:', reason);
     process.exit(1);
 });
+
+
+
+
+
+
+
+
+
+
+
+
+// ...existing code...
+
+app.patch('/api/orders/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const validStatuses = ['pending', 'confirmed', 'in_production', 'ready', 'delivered', 'cancelled', 'done'];
+
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({
+                error: 'Invalid status',
+                validStatuses: validStatuses
+            });
+        }
+
+        // Update the status in the database
+        const updateQuery = 'UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3 RETURNING *';
+        const updateParams = [status, formatDateForSQL(), req.params.id];
+        const updated = await executeQuery(updateQuery, updateParams);
+
+        if (updated.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        // If status is "done", send an email to the user
+        if (status === 'done') {
+            // You may want to customize the email content for "done" status
+            await sendEmailViaBrevo({
+                to: updated[0].email,
+                subject: 'Your ICE Jersey Order is Done!',
+                htmlContent: `<p>Hi ${updated[0].name},<br>Your jersey order is now marked as <b>done</b>! Please collect it from the department office.</p>`,
+                textContent: `Hi ${updated[0].name},\nYour jersey order is now marked as done! Please collect it from the department office.`
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Order status updated successfully',
+            newStatus: status
+        });
+    } catch (error) {
+        console.error('Error updating order status:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
+// ...existing code...
+
+
+
+
+
+
+
 
 
 // Start the server
