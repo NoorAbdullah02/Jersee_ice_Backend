@@ -87,26 +87,55 @@ const initDB = async () => {
     await client.query(`
       CREATE TABLE IF NOT EXISTS admin_users (
         id SERIAL PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
+        username VARCHAR(10) UNIQUE NOT NULL,
+        password_hash VARCHAR(70) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
 
-    // Create default admin if not exists
-    const adminExists = await client.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
-    if (adminExists.rows.length === 0) {
-      const hashedPassword = await bcrypt.hash('admin12345', 12);
-      await client.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
-        ['admin', hashedPassword]);
-      console.log('Default admin created: admin/admin123');
-    }
+  //   // Create default admin if not exists
 
+
+  //   const adminExists = await client.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
+  //   if (adminExists.rows.length === 0) {
+  //     const hashedPassword = await bcrypt.hash('admin123', 12);
+  //     await client.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
+  //       ['admin', hashedPassword]);
+  //     console.log('Default admin created: admin/admin123');
+  //   }
+
+  // } finally {
+  //   await client.end();
+  // }
+
+
+ const defaultAdmins = [
+      { username: 'admin', password: 'admin123' },
+      { username: 'aldrik', password: 'chakma' },
+      { username: 'noor', password: 'bauet12' }
+    ];
+
+    for (const admin of defaultAdmins) {
+      const adminExists = await client.query(
+        'SELECT id FROM admin_users WHERE username = $1',
+        [admin.username]
+      );
+
+      if (adminExists.rows.length === 0) {
+        const hashedPassword = await bcrypt.hash(admin.password, 12);
+        await client.query(
+          'INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
+          [admin.username, hashedPassword]
+        );
+        console.log(`Default admin created: ${admin.username}/${admin.password}`);
+      }
+    }
   } finally {
     await client.end();
   }
-
 };
+
+
 
 // JWT Auth middleware
 const authenticateToken = async (req, res, next) => {
