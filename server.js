@@ -615,86 +615,91 @@ app.post('/api/orders', async (req, res) => {
 //     }
 // });
 
+
+
 // Update order status - FIXED
-app.patch('/api/orders/:id/status', async (req, res) => {
-    try {
-        const { status } = req.body;
-        const validStatuses = ['pending', 'confirmed', 'in_production', 'ready', 'delivered', 'cancelled'];
-        
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ 
-                error: 'Invalid status',
-                validStatuses: validStatuses
-            });
-        }
 
-        const updateQuery = 'UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3';
-        const updateParams = [status, formatDateForSQL(), req.params.id];
-        
-        await executeQuery(updateQuery, updateParams);
-        
-        res.json({ 
-            success: true, 
-            message: 'Order status updated successfully',
-            newStatus: status
-        });
-    } catch (error) {
-        console.error('Error updating order status:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
 
-// Delete order - FIXED
-app.delete('/api/orders/:id', async (req, res) => {
-    try {
-        const deleteQuery = 'DELETE FROM orders WHERE id = $1';
-        await executeQuery(deleteQuery, [req.params.id]);
-        
-        res.json({ 
-            success: true, 
-            message: 'Order deleted successfully'
-        });
-    } catch (error) {
-        console.error('Error deleting order:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
 
-// Get orders by batch - FIXED
-app.get('/api/orders/batch/:batch', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM orders WHERE batch = $1 ORDER BY created_at DESC';
-        const orders = await executeQuery(query, [req.params.batch]);
+// app.patch('/api/orders/:id/status', async (req, res) => {
+//     try {
+//         const { status } = req.body;
+//         const validStatuses = ['pending', 'confirmed', 'in_production', 'ready', 'delivered', 'cancelled'];
         
-        res.json({
-            success: true,
-            batch: req.params.batch,
-            count: orders.length,
-            orders: orders
-        });
-    } catch (error) {
-        console.error('Error fetching orders by batch:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
+//         if (!validStatuses.includes(status)) {
+//             return res.status(400).json({ 
+//                 error: 'Invalid status',
+//                 validStatuses: validStatuses
+//             });
+//         }
 
-// Get orders by status - FIXED
-app.get('/api/orders/status/:status', async (req, res) => {
-    try {
-        const query = 'SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC';
-        const orders = await executeQuery(query, [req.params.status]);
+//         const updateQuery = 'UPDATE orders SET status = $1, updated_at = $2 WHERE id = $3';
+//         const updateParams = [status, formatDateForSQL(), req.params.id];
         
-        res.json({
-            success: true,
-            status: req.params.status,
-            count: orders.length,
-            orders: orders
-        });
-    } catch (error) {
-        console.error('Error fetching orders by status:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
-    }
-});
+//         await executeQuery(updateQuery, updateParams);
+        
+//         res.json({ 
+//             success: true, 
+//             message: 'Order status updated successfully',
+//             newStatus: status
+//         });
+//     } catch (error) {
+//         console.error('Error updating order status:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
+
+// // Delete order - FIXED
+// app.delete('/api/orders/:id', async (req, res) => {
+//     try {
+//         const deleteQuery = 'DELETE FROM orders WHERE id = $1';
+//         await executeQuery(deleteQuery, [req.params.id]);
+        
+//         res.json({ 
+//             success: true, 
+//             message: 'Order deleted successfully'
+//         });
+//     } catch (error) {
+//         console.error('Error deleting order:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
+
+// // Get orders by batch - FIXED
+// app.get('/api/orders/batch/:batch', async (req, res) => {
+//     try {
+//         const query = 'SELECT * FROM orders WHERE batch = $1 ORDER BY created_at DESC';
+//         const orders = await executeQuery(query, [req.params.batch]);
+        
+//         res.json({
+//             success: true,
+//             batch: req.params.batch,
+//             count: orders.length,
+//             orders: orders
+//         });
+//     } catch (error) {
+//         console.error('Error fetching orders by batch:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
+
+// // Get orders by status - FIXED
+// app.get('/api/orders/status/:status', async (req, res) => {
+//     try {
+//         const query = 'SELECT * FROM orders WHERE status = $1 ORDER BY created_at DESC';
+//         const orders = await executeQuery(query, [req.params.status]);
+        
+//         res.json({
+//             success: true,
+//             status: req.params.status,
+//             count: orders.length,
+//             orders: orders
+//         });
+//     } catch (error) {
+//         console.error('Error fetching orders by status:', error);
+//         res.status(500).json({ error: 'Internal server error', details: error.message });
+//     }
+// });
 
 // Serve frontend files
 app.get('/', (req, res) => {
