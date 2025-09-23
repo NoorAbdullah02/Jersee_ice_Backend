@@ -110,7 +110,7 @@ const initDB = async () => {
 
 
  const defaultAdmins = [
-      { username: 'admin', password: 'admin123' },
+      { username: 'ice', password: 'ice14' },
       { username: 'aldrik', password: 'chakma' },
       { username: 'noor', password: 'bauet12' }
     ];
