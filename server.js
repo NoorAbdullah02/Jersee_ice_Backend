@@ -96,7 +96,7 @@ const initDB = async () => {
     // Create default admin if not exists
     const adminExists = await client.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
     if (adminExists.rows.length === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 12);
+      const hashedPassword = await bcrypt.hash('admin12345', 12);
       await client.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
         ['admin', hashedPassword]);
       console.log('Default admin created: admin/admin123');
@@ -105,6 +105,7 @@ const initDB = async () => {
   } finally {
     await client.end();
   }
+
 };
 
 // JWT Auth middleware
