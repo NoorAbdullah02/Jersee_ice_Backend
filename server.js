@@ -430,9 +430,13 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
         - Production will begin within 2-3 business days
         - Expected delivery: 7-10 business days
         
-        If you have any questions, please contact us at ice.department@university.edu
+        If you have any questions, please contact us:
+        - Name: Aldrik 
+        - Phone: 01850685667
+        - Name: Munna
+        - Phone: 01637964859
         
-        © 2025 Institute of Computer Engineering. All rights reserved.
+        © 2025 Institute of Information & Communication Engineering. All rights reserved.
     `;
 
       await sendEmail(
