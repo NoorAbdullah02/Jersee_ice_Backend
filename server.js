@@ -551,7 +551,7 @@ app.get('/api/admin/orders', authenticateToken, async (req, res) => {
     }
 
     if (search) {
-      conditions.push(`(name ILIKE $${params.length + 1} OR student_id ILIKE $${params.length + 1} OR email ILIKE $${params.length + 1})`);
+      conditions.push(`(name ILIKE $${params.length + 1} OR student_id ILIKE $${params.length + 1} OR email ILIKE $${params.length + 1} OR batch ILIKE $${params.length + 1})`);
       params.push(`%${search}%`);
     }
 
