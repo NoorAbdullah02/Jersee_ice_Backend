@@ -395,13 +395,16 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
                 
                 <p style="text-align: center; margin-top: 30px;">
                     <small style="color: #666;">
-                        If you have any questions, please contact us at ice.department@university.edu
+                        If you have any questions, please contact us:
+                        <br/>- Name: Aldrik, Phone: 01850685667
+                        <br/>- Name: Munna, Phone: 01637964859
                     </small>
+                    
                 </p>
             </div>
             
             <div style="background: #333; color: white; text-align: center; padding: 15px;">
-                <p style="margin: 0;">&copy; 2025 Institute of Computer Engineering. All rights reserved.</p>
+                <p style="margin: 0;">&copy; 2025 Depertment of Information & Communication Engineering. All rights reserved.</p>
             </div>
         </div>
     `;
@@ -436,7 +439,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
         - Name: Munna
         - Phone: 01637964859
         
-        © 2025 Institute of Information & Communication Engineering. All rights reserved.
+        © 2025 Depertment of Information & Communication Engineering. All rights reserved.
     `;
 
       await sendEmail(
