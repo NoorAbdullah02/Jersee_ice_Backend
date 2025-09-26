@@ -93,23 +93,23 @@ const initDB = async () => {
       )
     `);
 
-  //   // Create default admin if not exists
+    //   // Create default admin if not exists
 
 
-  //   const adminExists = await client.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
-  //   if (adminExists.rows.length === 0) {
-  //     const hashedPassword = await bcrypt.hash('admin123', 12);
-  //     await client.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
-  //       ['admin', hashedPassword]);
-  //     console.log('Default admin created: admin/admin123');
-  //   }
+    //   const adminExists = await client.query('SELECT id FROM admin_users WHERE username = $1', ['admin']);
+    //   if (adminExists.rows.length === 0) {
+    //     const hashedPassword = await bcrypt.hash('admin123', 12);
+    //     await client.query('INSERT INTO admin_users (username, password_hash) VALUES ($1, $2)',
+    //       ['admin', hashedPassword]);
+    //     console.log('Default admin created: admin/admin123');
+    //   }
 
-  // } finally {
-  //   await client.end();
-  // }
+    // } finally {
+    //   await client.end();
+    // }
 
 
- const defaultAdmins = [
+    const defaultAdmins = [
       { username: 'ice', password: 'ice14' },
       { username: 'aldrik', password: 'chakma' },
       { username: 'noor', password: 'hosu' }
@@ -396,8 +396,9 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
                 <p style="text-align: center; margin-top: 30px;">
                     <small style="color: #666;">
                         If you have any questions, please contact us:
-                        <br/>- Name: Aldrik, Phone: 01850685667
-                        <br/>- Name: Munna, Phone: 01637964859 
+                        <br/>- Name: <strong>Aldrik</strong>, Phone: <strong>01850685667</strong>
+                        <br/>- Name: <strong>Munna</strong>, Phone: <strong>01637964859</strong>
+
                     </small>
                     
                 </p>
