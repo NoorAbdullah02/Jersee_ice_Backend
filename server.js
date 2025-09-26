@@ -396,8 +396,8 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
                 <p style="text-align: center; margin-top: 30px;">
                     <small style="color: #666;">
                         If you have any questions, please contact us:
-                        <br/>- Name: <strong>Aldrik</strong>, Phone: <strong>01850685667</strong>
-                        <br/>- Name: <strong>Munna</strong>, Phone: <strong>01637964859</strong>
+                        <br/> Name: <strong>Aldrik</strong>, Phone: <strong>01850685667</strong>
+                        <br/> Name: <strong>Munna</strong>, Phone: <strong>01637964859</strong>
 
                     </small>
                     
