@@ -69,7 +69,7 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         name VARCHAR(40) NOT NULL,
         student_id VARCHAR(30) NOT NULL,
-        jersey_number INTEGER NOT NULL UNIQUE,
+        jersey_number INTEGER NOT NULL ,
         batch VARCHAR(20),
         size VARCHAR(10) NOT NULL,
         collar_type VARCHAR(20) NOT NULL,
@@ -331,12 +331,19 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
     const client = await connectDB();
     try {
       // Check if jersey number exists
-      const existingJersey = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [jerseyNum]);
-      if (existingJersey.rows.length > 0) {
-        return res.status(409).json({
-          error: `Jersey #${jerseyNum} is already taken by ${existingJersey.rows[0].name}`
-        });
-      }
+
+
+
+      // const existingJersey = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [jerseyNum]);
+      // if (existingJersey.rows.length > 0) {
+      //   return res.status(409).json({
+      //     error: `Jersey #${jerseyNum} is already taken by ${existingJersey.rows[0].name}`
+      //   });
+      // }
+
+
+
+      
 
       // Insert order
       const result = await client.query(`
