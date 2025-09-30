@@ -720,7 +720,7 @@ app.patch('/api/admin/orders/:id/status', authenticateToken, async (req, res) =>
           order.email,
           'Payment Confirmed - ICE Jersey Order',
           confirmationHtml,
-          `Your payment has been confirmed for Jersey #${order.jersey_number}. Order ID: ICE-${order.id.toString().padStart(6, '0')}`
+          `Your payment has been confirmed for Jersey #${order.jersey_number}. Order ID: ICE-${order.id.toString().padStart(3, '0')}`
         );
       }
 
