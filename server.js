@@ -367,7 +367,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center;">
                 <h1 style="color: white; margin: 0;">Order Confirmation</h1>
-                <p style="color: white; margin: 5px 0;">Institute of Information & Communication Engineering</p>
+                <p style="color: white; margin: 5px 0;">Department of Information & Communication Engineering</p>
             </div>
             
             <div style="padding: 20px; background: #f8f9fa;">
@@ -701,7 +701,7 @@ app.patch('/api/admin/orders/:id/status', authenticateToken, async (req, res) =>
               <p>Great news! Your payment has been confirmed and your jersey order is now complete.</p>
               <div style="background: #d1fae5; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
                 <h3 style="color: #065f46; margin-top: 0;">Order Confirmed:</h3>
-                <p style="color: #065f46;"><strong>Order ID:</strong> ICE-${order.id.toString().padStart(6, '0')}</p>
+                <p style="color: #065f46;"><strong>Order ID:</strong> ICE-${order.id.toString().padStart(3, '0')}</p>
                 <p style="color: #065f46;"><strong>Jersey Number:</strong> #${order.jersey_number}</p>
                 <p style="color: #065f46;"><strong>Status:</strong> Confirmed & Processing</p>
               </div>
