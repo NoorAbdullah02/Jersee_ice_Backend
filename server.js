@@ -69,7 +69,7 @@ const initDB = async () => {
         id SERIAL PRIMARY KEY,
         name VARCHAR(40) NOT NULL,
         student_id VARCHAR(30) NOT NULL,
-        jersey_number INTEGER NOT NULL,
+        jersey_number VARCHAR(8) NOT NULL,
         batch VARCHAR(20),
         size VARCHAR(10) NOT NULL,
         collar_type VARCHAR(20) NOT NULL,
