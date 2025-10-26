@@ -67,10 +67,10 @@ const initDB = async () => {
     await client.query(`
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
-        name VARCHAR(40) NOT NULL,
-        student_id VARCHAR(30) NOT NULL,
-        jersey_number VARCHAR(8) NOT NULL,
-        batch VARCHAR(20),
+        name VARCHAR(30) NOT NULL,
+        student_id VARCHAR(15) NOT NULL,
+        jersey_number VARCHAR(6) NOT NULL,
+        batch VARCHAR(15),
         size VARCHAR(10) NOT NULL,
         collar_type VARCHAR(20) NOT NULL,
         sleeve_type VARCHAR(20) NOT NULL,
