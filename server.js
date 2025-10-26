@@ -68,7 +68,7 @@ const initDB = async () => {
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         name VARCHAR(30) NOT NULL,
-        student_id VARCHAR(15) NOT NULL,
+        phone_number VARCHAR(15) NOT NULL,
         jersey_number VARCHAR(6) NOT NULL,
         batch VARCHAR(15),
         size VARCHAR(10) NOT NULL,
