@@ -258,7 +258,7 @@ app.get('/api/orders/check-jersey', apiLimiter, async (req, res) => {
     const client = await connectDB();
     try {
      // const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [parseInt(number)]);
-     const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [number.toString().trim()]);
+     const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [number.toString().trim()]);   
 
       res.json({
         available: result.rows.length === 0,
