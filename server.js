@@ -257,7 +257,8 @@ app.get('/api/orders/check-jersey', apiLimiter, async (req, res) => {
 
     const client = await connectDB();
     try {
-      const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [parseInt(number)]);
+     // const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [parseInt(number)]);
+     const result = await client.query('SELECT name FROM orders WHERE jersey_number = $1', [number.toString().trim()]);
 
       res.json({
         available: result.rows.length === 0,
@@ -323,8 +324,10 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
     }
 
     // Validate jersey number
-    const jerseyNum = parseInt(jerseyNumber);
-    if (isNaN(jerseyNum) || jerseyNum < 0 || jerseyNum > 500) {
+    // Validate jersey number - keep as string but validate range
+    const jerseyNum = jerseyNumber.toString().trim();
+    const numValue = parseInt(jerseyNum, 10);
+    if (isNaN(numValue) || numValue < 0 || numValue > 500) {
       return res.status(400).json({ error: 'Jersey number must be 0-500' });
     }
 
