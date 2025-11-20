@@ -68,7 +68,7 @@ const initDB = async () => {
       CREATE TABLE IF NOT EXISTS orders (
         id SERIAL PRIMARY KEY,
         name VARCHAR(30) NOT NULL,
-        student_id VARCHAR(15) NOT NULL,
+        mobile_number VARCHAR(15) NOT NULL,
         jersey_number VARCHAR(6) NOT NULL,
         batch VARCHAR(15),
         size VARCHAR(10) NOT NULL,
@@ -307,13 +307,13 @@ app.get('/api/orders/check-name', apiLimiter, async (req, res) => {
 app.post('/api/orders', orderLimiter, async (req, res) => {
   try {
     const {
-      name, studentId, jerseyNumber, batch, size,
+      name, mobileNumber, jerseyNumber, batch, size,
       collarType, sleeveType, email, transactionId,
       notes, finalPrice
     } = req.body;
 
     // Validate required fields
-    if (!name || !studentId || !jerseyNumber || !size ||
+    if (!name || !mobileNumber || !jerseyNumber || !size ||
       !collarType || !sleeveType || !email || !finalPrice) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -325,7 +325,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
 
     // Validate jersey number
     // Validate jersey number - keep as string but validate range
-    const jerseyNum = jerseyNumber.toString().trim();
+  const jerseyNum = jerseyNumber.toString().trim();
     const numValue = parseInt(jerseyNum, 10);
     if (isNaN(numValue) || numValue < 0 || numValue > 500) {
       return res.status(400).json({ error: 'Jersey number must be 0-500' });
@@ -351,13 +351,13 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
       // Insert order
       const result = await client.query(`
         INSERT INTO orders (
-          name, student_id, jersey_number, batch, size,
+          name, mobile_number, jersey_number, batch, size,
           collar_type, sleeve_type, email, transaction_id,
           notes, final_price, status
         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
       `, [
-        name.trim(), studentId.trim(), jerseyNum,
+        name.trim(), mobileNumber.trim(), jerseyNum,
         batch?.trim() || null, size, collarType, sleeveType,
         email.trim(), transactionId?.trim() || null,
         notes?.trim() || null, finalPrice, 'pending'
@@ -381,7 +381,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
                     <h3 style="color: #667eea; margin-top: 0;">Order Details:</h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td><strong>Name:</strong></td><td>${order.name}</td></tr>
-                        <tr><td><strong>Student ID:</strong></td><td>${order.student_id}</td></tr>
+                        <tr><td><strong>Mobile Number:</strong></td><td>${order.mobile_number}</td></tr>
                         <tr><td><strong>Jersey Number:</strong></td><td>${order.jersey_number}</td></tr>
                         ${order.batch ? `<tr><td><strong>Batch:</strong></td><td>${order.batch}</td></tr>` : ''}
                         <tr><td><strong>Size:</strong></td><td>${order.size}</td></tr>
@@ -428,7 +428,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
         
         Order Details:
         - Name: ${order.name}
-        - Student ID: ${order.student_id}
+  - Mobile Number: ${order.mobile_number}
         - Jersey Number: ${order.jersey_number}
         ${order.batch ? `- Batch: ${order.batch}` : ''}
         - Size: ${order.size}
@@ -477,7 +477,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
                     <h3 style="color: #dc3545; margin-top: 0;">Customer Information:</h3>
                     <table style="width: 100%; border-collapse: collapse;">
                         <tr><td><strong>Student Name:</strong></td><td>${order.name}</td></tr>
-                        <tr><td><strong>Student ID:</strong></td><td>${order.student_id}</td></tr>
+                        <tr><td><strong>Mobile Number:</strong></td><td>${order.mobile_number}</td></tr>
                         <tr><td><strong>Email:</strong></td><td>${order.email}</td></tr>
                         ${order.batch ? `<tr><td><strong>Batch:</strong></td><td>${order.batch}</td></tr>` : ''}
                     </table>
@@ -512,7 +512,7 @@ app.post('/api/orders', orderLimiter, async (req, res) => {
         
         Customer Information:
         - Student Name: ${order.name}
-        - Student ID: ${order.student_id}
+  - Mobile Number: ${order.mobile_number}
         - Email: ${order.email}
         ${order.batch ? `- Batch: ${order.batch}` : ''}
         
@@ -569,7 +569,7 @@ app.get('/api/admin/orders', authenticateToken, async (req, res) => {
     }
 
     if (search) {
-      conditions.push(`(name ILIKE $${params.length + 1} OR student_id ILIKE $${params.length + 1} OR email ILIKE $${params.length + 1} OR batch ILIKE $${params.length + 1})`);
+  conditions.push(`(name ILIKE $${params.length + 1} OR mobile_number ILIKE $${params.length + 1} OR email ILIKE $${params.length + 1} OR batch ILIKE $${params.length + 1})`);
       params.push(`%${search}%`);
     }
 
